@@ -18,8 +18,7 @@ app.use(function(req, res, next) {
 
 // ----- The API implementation
 
-var host = process.env.HOST || 'localhost:' + process.env.PORT,
-    todos = {},
+var todos = {},
     currentId = 1;
 
 function getAllTodos() {
@@ -30,14 +29,14 @@ function getAllTodos() {
   return list;
 }
 
-function addTodo(data) {
+function addTodo(baseUrl, data) {
   var id = currentId++;
 
   var todo = {
     id: id,
     title: data.title,
     completed: false,
-    url: '//' + host + '/' + id
+    url: baseUrl + '/' + id
   };
 
   todos[todo.id] = todo;
@@ -65,7 +64,10 @@ app.get('/:id', function(req, res) {
 });
 
 app.post('/', function(req, res) {
-  var todo = addTodo(req.body);
+  console.log('Protocol: ' + req.protocol);
+  console.log('Host: ' + req.get('host'));
+  var baseUrl = req.protocol + '://' + req.get('host');
+  var todo = addTodo(baseUrl, req.body);
   res.send(todo);
 });
 
