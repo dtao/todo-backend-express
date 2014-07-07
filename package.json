@@ -1,0 +1,27 @@
+{
+  "name": "todo-backend-express",
+  "version": "0.1.0",
+  "description": "a Node.js/Express implementation of the Todo-Backend API spec",
+  "main": "server.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dtao/todo-backend-express"
+  },
+  "keywords": [
+    "todo-backend",
+    "api"
+  ],
+  "author": "Dan Tao <daniel.tao@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dtao/todo-backend-express/issues"
+  },
+  "homepage": "https://github.com/dtao/todo-backend-express",
+  "engines": {
+    "node": "0.10.x"
+  },
+  "dependencies": {
+    "body-parser": "^1.4.3",
+    "express": "^4.5.1"
+  }
+}
