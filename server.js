@@ -18,7 +18,7 @@ app.use(function(req, res, next) {
 
 // ----- The API implementation
 
-var host = process.env.HOST || 'localhost',
+var host = process.env.HOST || 'localhost:' + process.env.PORT,
     todos = {},
     currentId = 1;
 
@@ -37,7 +37,7 @@ function addTodo(data) {
     id: id,
     title: data.title,
     completed: false,
-    url: '//' + host + ':' + process.env.PORT + '/' + id
+    url: '//' + host + '/' + id
   };
 
   todos[todo.id] = todo;
