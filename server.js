@@ -36,37 +36,67 @@ function getCreateTodo(req) {
 }
 
 app.get('/', function(req, res) {
-  todos.all(function(todos) {
+  todos.all(function(err, todos) {
+    if (err) {
+      res.send(404, 'No TODOs!');
+      return;
+    }
+
     res.send(todos.map(getCreateTodo(req)));
   });
 });
 
 app.get('/:id', function(req, res) {
-  todos.get(req.params.id, function(todo) {
+  todos.get(req.params.id, function(err, todo) {
+    if (err || !todo) {
+      res.send(404, 'TODO missing?');
+      return;
+    }
+
     res.send(createTodo(req, todo));
   });
 });
 
 app.post('/', function(req, res) {
-  todos.create(req.body.title, function(todo) {
+  todos.create(req.body.title, function(err, todo) {
+    if (err || !todo) {
+      res.send(500, 'Unable to create TODO!');
+      return;
+    }
+
     res.send(createTodo(req, todo));
   });
 });
 
 app.patch('/:id', function(req, res) {
-  todos.update(req.params.id, req.body, function(todo) {
+  todos.update(req.params.id, req.body, function(err, todo) {
+    if (err || !todo) {
+      res.send(404, 'TODO missing?');
+      return;
+    }
+
     res.send(createTodo(req, todo));
   });
 });
 
 app.delete('/', function(req, res) {
-  todos.clear(function(todos) {
+  todos.clear(function(err, todos) {
+    if (err) {
+      res.send(404, 'TODO missing?');
+      return;
+    }
+
     res.send(todos.map(getCreateTodo(req)));
   })
 });
 
 app.delete('/:id', function(req, res) {
-  todos.delete(req.params.id, function(todo) {
+  todos.delete(req.params.id, function(err, todo) {
+    if (err || !todo) {
+      res.send(500, 'Unable to delete TODOs!');
+      return;
+    }
+
     res.send(createTodo(req, todo));
   });
 });

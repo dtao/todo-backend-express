@@ -16,7 +16,7 @@ module.exports = function createTodoBackend(connectionString) {
           return;
         }
 
-        callback(result.rows);
+        callback(null, result.rows);
       });
     });
   }
@@ -27,14 +27,14 @@ module.exports = function createTodoBackend(connectionString) {
     },
 
     get: function(id, callback) {
-      query('SELECT * FROM todos WHERE id = $1', [id], function(rows) {
-        callback(rows[0]);
+      query('SELECT * FROM todos WHERE id = $1', [id], function(err, rows) {
+        callback(err, rows && rows[0]);
       });
     },
 
     create: function(title, callback) {
-      query("INSERT INTO todos (title, completed) VALUES ($1, false) RETURNING *", [title], function(rows) {
-        callback(rows[0]);
+      query("INSERT INTO todos (title, completed) VALUES ($1, false) RETURNING *", [title], function(err, rows) {
+        callback(err, rows && rows[0]);
       });
     },
 
@@ -56,14 +56,14 @@ module.exports = function createTodoBackend(connectionString) {
         'RETURNING *'
       ];
 
-      query(updateQuery.join(' '), values.concat([id]), function(rows) {
-        callback(rows[0]);
+      query(updateQuery.join(' '), values.concat([id]), function(err, rows) {
+        callback(err, rows && rows[0]);
       });
     },
 
     delete: function(id, callback) {
-      query('DELETE FROM todos WHERE id = $1 RETURNING *', [id], function(rows) {
-        callback(rows[0]);
+      query('DELETE FROM todos WHERE id = $1 RETURNING *', [id], function(err, rows) {
+        callback(err, rows && rows[0]);
       });
     },
 
