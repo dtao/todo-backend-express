@@ -64,8 +64,6 @@ app.get('/:id', function(req, res) {
 });
 
 app.post('/', function(req, res) {
-  console.log('Protocol: ' + req.protocol);
-  console.log('Host: ' + req.get('host'));
   var baseUrl = req.protocol + '://' + req.get('host');
   var todo = addTodo(baseUrl, req.body);
   res.send(todo);
