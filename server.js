@@ -1,5 +1,6 @@
 var express = require('express'),
-    bodyParser = require('body-parser');
+    bodyParser = require('body-parser'),
+    backend = require('./backend');
 
 var app = express();
 
@@ -18,70 +19,56 @@ app.use(function(req, res, next) {
 
 // ----- The API implementation
 
-var todos = {},
-    currentId = 1;
+var todos = backend(process.env.DATABASE_URL);
 
-function getAllTodos() {
-  var list = [];
-  for (var id in todos) {
-    list.push(todos[id]);
-  }
-  return list;
-}
-
-function addTodo(baseUrl, data) {
-  var id = currentId++;
-
-  var todo = {
-    id: id,
+function createTodo(req, data) {
+  return {
     title: data.title,
-    completed: false,
-    url: baseUrl + '/' + id
+    completed: data.completed || false,
+    url: '//' + req.get('host') + '/' + data.id
   };
-
-  todos[todo.id] = todo;
-
-  return todo;
 }
 
-function updateTodo(id, data) {
-  var todo = todos[id];
-
-  for (var prop in data) {
-    todo[prop] = data[prop];
-  }
-
-  return todo;
+function getCreateTodo(req) {
+  return function(data) {
+    return createTodo(req, data);
+  };
 }
 
 app.get('/', function(req, res) {
-  res.send(getAllTodos());
+  todos.all(function(todos) {
+    res.send(todos.map(getCreateTodo(req)));
+  });
 });
 
 app.get('/:id', function(req, res) {
-  var todo = todos[req.params.id];
-  res.send(todo);
+  todos.get(req.params.id, function(todo) {
+    res.send(createTodo(req, todo));
+  });
 });
 
 app.post('/', function(req, res) {
-  var baseUrl = req.protocol + '://' + req.get('host');
-  var todo = addTodo(baseUrl, req.body);
-  res.send(todo);
+  todos.create(req.body.title, function(todo) {
+    res.send(createTodo(req, todo));
+  });
 });
 
 app.patch('/:id', function(req, res) {
-  var todo = updateTodo(req.params.id, req.body);
-  res.send(todo);
+  todos.update(req.params.id, req.body, function(todo) {
+    res.send(createTodo(req, todo));
+  });
 });
 
 app.delete('/', function(req, res) {
-  todos = {};
-  res.send(getAllTodos());
+  todos.clear(function(todos) {
+    res.send(todos.map(getCreateTodo(req)));
+  })
 });
 
 app.delete('/:id', function(req, res) {
-  delete todos[req.params.id];
-  res.send(getAllTodos());
+  todos.delete(req.params.id, function(todo) {
+    res.send(createTodo(req, todo));
+  });
 });
 
 app.listen(Number(process.env.PORT || 5000));
