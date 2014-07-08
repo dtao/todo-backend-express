@@ -39,20 +39,15 @@ module.exports = function createTodoBackend(connectionString) {
     },
 
     update: function(id, properties, callback) {
-      // Split keys & values
-      var keys = [], values = [];
-      for (var prop in properties) {
-        // Only allowed keys are 'title' and 'completed'
-        if (prop !== 'title' && prop !== 'completed')
-          continue;
-
-        keys.push(prop);
-        values.push(properties[prop]);
+      var assigns = [], values = [];
+      if ('title' in properties) {
+        assigns.push('title=$' + (assigns.length + 1));
+        values.push(properties.title);
       }
-
-      var assigns = keys.map(function(key, i) {
-        return key + '=$' + (i + 1);
-      });
+      if ('completed' in properties) {
+        assigns.push('completed=$' + (assigns.length + 1));
+        values.push(properties.completed);
+      }
 
       var updateQuery = [
         'UPDATE todos',
