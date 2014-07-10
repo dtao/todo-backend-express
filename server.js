@@ -21,6 +21,17 @@ app.use(function(req, res, next) {
 
 var todos = backend(process.env.DATABASE_URL);
 
+function createCallback(res, onSuccess) {
+  return function callback(err, data) {
+    if (err || !data) {
+      res.send(500, 'Something bad happened!');
+      return;
+    }
+
+    onSuccess(data);
+  }
+}
+
 function createTodo(req, data) {
   return {
     title: data.title,
@@ -36,69 +47,39 @@ function getCreateTodo(req) {
 }
 
 app.get('/', function(req, res) {
-  todos.all(function(err, todos) {
-    if (err) {
-      res.send(404, 'No TODOs!');
-      return;
-    }
-
+  todos.all(createCallback(res, function(todos) {
     res.send(todos.map(getCreateTodo(req)));
-  });
+  }));
 });
 
 app.get('/:id', function(req, res) {
-  todos.get(req.params.id, function(err, todo) {
-    if (err || !todo) {
-      res.send(404, 'TODO missing?');
-      return;
-    }
-
+  todos.get(req.params.id, createCallback(res, function(todo) {
     res.send(createTodo(req, todo));
-  });
+  }));
 });
 
 app.post('/', function(req, res) {
-  todos.create(req.body.title, function(err, todo) {
-    if (err || !todo) {
-      res.send(500, 'Unable to create TODO!');
-      return;
-    }
-
+  todos.create(req.body.title, createCallback(res, function(todo) {
     res.send(createTodo(req, todo));
-  });
+  }));
 });
 
 app.patch('/:id', function(req, res) {
-  todos.update(req.params.id, req.body, function(err, todo) {
-    if (err || !todo) {
-      res.send(404, 'TODO missing?');
-      return;
-    }
-
+  todos.update(req.params.id, req.body, createCallback(res, function(todo) {
     res.send(createTodo(req, todo));
-  });
+  }));
 });
 
 app.delete('/', function(req, res) {
-  todos.clear(function(err, todos) {
-    if (err) {
-      res.send(404, 'TODO missing?');
-      return;
-    }
-
+  todos.clear(createCallback(res, function(todos) {
     res.send(todos.map(getCreateTodo(req)));
-  })
+  }));
 });
 
 app.delete('/:id', function(req, res) {
-  todos.delete(req.params.id, function(err, todo) {
-    if (err || !todo) {
-      res.send(500, 'Unable to delete TODOs!');
-      return;
-    }
-
+  todos.delete(req.params.id, createCallback(res, function(todo) {
     res.send(createTodo(req, todo));
-  });
+  }));
 });
 
 app.listen(Number(process.env.PORT || 5000));
