@@ -21,17 +21,6 @@ app.use(function(req, res, next) {
 
 var todos = backend(process.env.DATABASE_URL);
 
-function createCallback(res, onSuccess) {
-  return function callback(err, data) {
-    if (err || !data) {
-      res.send(500, 'Something bad happened!');
-      return;
-    }
-
-    onSuccess(data);
-  }
-}
-
 function createTodo(req, data) {
   return {
     title: data.title,
@@ -40,46 +29,59 @@ function createTodo(req, data) {
   };
 }
 
-function getCreateTodo(req) {
-  return function(data) {
-    return createTodo(req, data);
-  };
-}
+// Create a nice little mapping from HTTP endpoints to methods + arguments to
+// send to our backend object.
+var api = [
+  ['GET /', 'all'],
+  ['GET /:id', 'get', ['params.id']],
+  ['POST /', 'create', ['body.title']],
+  ['PATCH /:id', 'update', ['params.id', 'body']],
+  ['DELETE /', 'clear'],
+  ['DELETE /:id', 'delete', ['params.id']]
+];
 
-app.get('/', function(req, res) {
-  todos.all(createCallback(res, function(todos) {
-    res.send(todos.map(getCreateTodo(req)));
-  }));
-});
+// For each entry in our mapping, basically do:
+//
+// app.<verb>(<route>, function(req, res) {
+//   backend.<method>(<arguments>, function(err, data) {
+//     res.send(data);
+//   });
+// });
+//
+// ...with a bit of error handling, of course.
+api.forEach(function(spec) {
+  var endpoint = spec[0].split(' '),
+      method = spec[1],
+      params = spec[2] || [];
 
-app.get('/:id', function(req, res) {
-  todos.get(req.params.id, createCallback(res, function(todo) {
-    res.send(createTodo(req, todo));
-  }));
-});
+  var verb = endpoint[0].toLowerCase(),
+      route = endpoint[1];
 
-app.post('/', function(req, res) {
-  todos.create(req.body.title, createCallback(res, function(todo) {
-    res.send(createTodo(req, todo));
-  }));
-});
+  app[verb](route, function(req, res) {
+    // For, e.g., 'params.id', we really want req.params.id; so split it into
+    // ['params', 'id'] and set value = req['params'] and then take value['id']
+    var args = params.map(function(param) {
+      return param.split('.').reduce(function(value, member) {
+        return value[member];
+      }, req);
+    });
 
-app.patch('/:id', function(req, res) {
-  todos.update(req.params.id, req.body, createCallback(res, function(todo) {
-    res.send(createTodo(req, todo));
-  }));
-});
+    todos[method].apply(todos, args.concat([function(err, data) {
+      if (err) {
+        res.send(500, 'Something bad happened!');
+        return;
+      }
 
-app.delete('/', function(req, res) {
-  todos.clear(createCallback(res, function(todos) {
-    res.send(todos.map(getCreateTodo(req)));
-  }));
-});
+      if (data instanceof Array) {
+        res.send(data.map(function(todo) {
+          return createTodo(req, todo);
+        }));
 
-app.delete('/:id', function(req, res) {
-  todos.delete(req.params.id, createCallback(res, function(todo) {
-    res.send(createTodo(req, todo));
-  }));
+      } else {
+        res.send(createTodo(req, data));
+      }
+    }]));
+  });
 });
 
 app.listen(Number(process.env.PORT || 5000));
