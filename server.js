@@ -1,8 +1,6 @@
-var express = require('express'),
+var app = require('express')(),
     bodyParser = require('body-parser'),
     backend = require('./backend');
-
-var app = express();
 
 // ----- Parse JSON requests
 
