@@ -34,7 +34,7 @@ function createTodo(req, data) {
   return {
     title: data.title,
     completed: data.completed || false,
-    url: '//' + req.get('host') + '/' + data.id
+    url: req.protocol + '://' + req.get('host') + '/' + data.id
   };
 }
 
