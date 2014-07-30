@@ -33,6 +33,7 @@ function createCallback(res, onSuccess) {
 function createTodo(req, data) {
   return {
     title: data.title,
+    order: data.order,
     completed: data.completed || false,
     url: req.protocol + '://' + req.get('host') + '/' + data.id
   };
@@ -57,7 +58,7 @@ app.get('/:id', function(req, res) {
 });
 
 app.post('/', function(req, res) {
-  todos.create(req.body.title, createCallback(res, function(todo) {
+  todos.create(req.body.title, req.body.order, createCallback(res, function(todo) {
     res.send(createTodo(req, todo));
   }));
 });

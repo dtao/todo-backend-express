@@ -32,8 +32,8 @@ module.exports = function createTodoBackend(connectionString) {
       });
     },
 
-    create: function(title, callback) {
-      query("INSERT INTO todos (title, completed) VALUES ($1, false) RETURNING *", [title], function(err, rows) {
+    create: function(title, order, callback) {
+      query('INSERT INTO todos ("title", "order", "completed") VALUES ($1, $2, false) RETURNING *', [title, order], function(err, rows) {
         callback(err, rows && rows[0]);
       });
     },
@@ -41,11 +41,15 @@ module.exports = function createTodoBackend(connectionString) {
     update: function(id, properties, callback) {
       var assigns = [], values = [];
       if ('title' in properties) {
-        assigns.push('title=$' + (assigns.length + 1));
+        assigns.push('"title"=$' + (assigns.length + 1));
         values.push(properties.title);
       }
+      if ('order' in properties) {
+        assigns.push('"order"=$' + (assigns.length + 1));
+        values.push(properties.order);
+      }
       if ('completed' in properties) {
-        assigns.push('completed=$' + (assigns.length + 1));
+        assigns.push('"completed"=$' + (assigns.length + 1));
         values.push(properties.completed);
       }
 
