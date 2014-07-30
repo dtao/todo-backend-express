@@ -4,4 +4,4 @@ This is an implementation of [moredip's](https://github.com/moredip) [Todo-Backe
 
 Unlike the example [Sinatra implementation](https://github.com/moredip/todo-backend-sinatra), this one does not "cheat"; it saves TODOs in a PostgreSQL database.
 
-This example is running on Heroku at [http://todo-backend-express.herokuapp.com](http://todo-backend-express.herokuapp.com).
+This example uses [node-db-migrate](https://github.com/kunklejr/node-db-migrate) for database migrations and is running on Heroku at [http://todo-backend-express.herokuapp.com](http://todo-backend-express.herokuapp.com).
