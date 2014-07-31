@@ -1,6 +1,7 @@
 var app = require('express')(),
     bodyParser = require('body-parser'),
-    backend = require('./backend');
+    todos = require('./todos')(process.env.DATABASE_URL),
+    users = require('./users')(process.env.DATABASE_URL);
 
 // ----- Parse JSON requests
 
@@ -17,17 +18,25 @@ app.use(function(req, res, next) {
 
 // ----- The API implementation
 
-var todos = backend(process.env.DATABASE_URL);
-
 function createCallback(res, onSuccess) {
   return function callback(err, data) {
+    if (err) {
+      console.error(err);
+    }
+
     if (err || !data) {
-      res.send(500, 'Something bad happened!');
+      res.send(500, err || 'Something bad happened!');
       return;
     }
 
     onSuccess(data);
-  }
+  };
+}
+
+function createUser(data) {
+  return {
+    name: data.name
+  };
 }
 
 function createTodo(req, data) {
@@ -45,38 +54,59 @@ function getCreateTodo(req) {
   };
 }
 
-app.get('/', function(req, res) {
-  todos.all(createCallback(res, function(todos) {
+app.post('/register', function(req, res) {
+  console.log('Params: ' + JSON.stringify(req.body));
+
+  var name = req.body.name,
+      password = req.body.password,
+      passwordConfirmation = req.body.passwordConfirmation;
+
+  users.create(name, password, passwordConfirmation, createCallback(res, function(user) {
+    res.send(createUser(user));
+  }));
+});
+
+app.post('/login', function(req, res) {
+  var name = req.body.name,
+      password = req.body.password;
+
+  users.getToken(name, password, createCallback(res, function(token) {
+    res.send({ token: token });
+  }));
+});
+
+app.get('/todos', function(req, res) {
+  todos.all(req.query.token, createCallback(res, function(todos) {
     res.send(todos.map(getCreateTodo(req)));
   }));
 });
 
-app.get('/:id', function(req, res) {
-  todos.get(req.params.id, createCallback(res, function(todo) {
+app.get('/todos/:id', function(req, res) {
+  todos.get(req.query.token, req.params.id, createCallback(res, function(todo) {
     res.send(createTodo(req, todo));
   }));
 });
 
-app.post('/', function(req, res) {
-  todos.create(req.body.title, req.body.order, createCallback(res, function(todo) {
+app.post('/todos', function(req, res) {
+  todos.create(req.query.token, req.body.title, req.body.order, createCallback(res, function(todo) {
     res.send(createTodo(req, todo));
   }));
 });
 
-app.patch('/:id', function(req, res) {
-  todos.update(req.params.id, req.body, createCallback(res, function(todo) {
+app.patch('/todos/:id', function(req, res) {
+  todos.update(req.query.token, req.params.id, req.body, createCallback(res, function(todo) {
     res.send(createTodo(req, todo));
   }));
 });
 
-app.delete('/', function(req, res) {
-  todos.clear(createCallback(res, function(todos) {
+app.delete('/todos', function(req, res) {
+  todos.clear(req.query.token, createCallback(res, function(todos) {
     res.send(todos.map(getCreateTodo(req)));
   }));
 });
 
-app.delete('/:id', function(req, res) {
-  todos.delete(req.params.id, createCallback(res, function(todo) {
+app.delete('/todos/:id', function(req, res) {
+  todos.delete(req.query.token, req.params.id, createCallback(res, function(todo) {
     res.send(createTodo(req, todo));
   }));
 });
