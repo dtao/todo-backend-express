@@ -1,0 +1,6 @@
+{
+  "dev": {
+    "driver": "pg",
+    "host": "localhost"
+  }
+}
