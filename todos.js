@@ -31,8 +31,6 @@ module.exports = function createTodoBackend(connectionString) {
       }
 
       addAssignment('user_id', userId);
-      addAssignment('order', properties.order);
-      addAssignment('completed', properties.completed);
 
       if ('title' in properties) {
         addAssignment('title', properties.title);
