@@ -44,7 +44,7 @@ function createTodo(req, data) {
     title: data.title,
     order: data.order,
     completed: data.completed || false,
-    url: req.protocol + '://' + req.get('host') + '/' + data.id
+    url: req.protocol + '://' + req.get('host') + '/todos/' + data.id
   };
 }
 
