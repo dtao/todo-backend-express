@@ -55,8 +55,6 @@ function getCreateTodo(req) {
 }
 
 app.post('/register', function(req, res) {
-  console.log('Params: ' + JSON.stringify(req.body));
-
   var name = req.body.name,
       password = req.body.password,
       passwordConfirmation = req.body.passwordConfirmation;
