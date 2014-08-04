@@ -20,12 +20,16 @@ app.use(function(req, res, next) {
 
 function createCallback(res, onSuccess) {
   return function callback(err, data) {
+    var status = 500;
+
     if (err) {
+      status = err.status || status;
+      err = err.message || err;
       console.error(err);
     }
 
     if (err || !data) {
-      res.send(500, err || 'Something bad happened!');
+      res.send(status, err || 'Something bad happened');
       return;
     }
 

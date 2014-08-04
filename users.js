@@ -23,7 +23,7 @@ module.exports = function createUsersBackend(connectionString) {
   return {
     create: function(name, password, passwordConfirmation, callback) {
       if (password !== passwordConfirmation) {
-        callback("Password and confirmation don't match.");
+        callback({ status: 401, message: "Password and confirmation don't match" });
         return;
       }
 
@@ -49,7 +49,7 @@ module.exports = function createUsersBackend(connectionString) {
     getToken: function(name, password, callback) {
       backend.query('SELECT * FROM users WHERE name = $1', [name], function(err, rows) {
         if (err || rows.length === 0) {
-          callback(err || 'User does not exist.');
+          callback(err || { status: 401, message: 'User does not exist' });
           return;
         }
 
@@ -61,7 +61,7 @@ module.exports = function createUsersBackend(connectionString) {
           }
 
           if (!success) {
-            callback('Incorrect password.');
+            callback({ status: 401, message: 'Incorrect password' });
             return;
           }
 
@@ -92,7 +92,7 @@ module.exports = function createUsersBackend(connectionString) {
 
     auth: function(token, callback) {
       if (!token) {
-        callback('Auth token imssing.');
+        callback({ status: 401, message: 'Auth token missing' });
         return;
       }
 
@@ -104,12 +104,12 @@ module.exports = function createUsersBackend(connectionString) {
 
         var authToken = rows[0];
         if (!authToken) {
-          callback('Incorrect auth token.');
+          callback({ status: 401, message: 'Incorrect auth token' });
           return;
         }
 
         if (authToken.expiration < Date.now()) {
-          callback('Auth token is expired.');
+          callback({ status: 401, message: 'Auth token is expired' });
           return;
         }
 
