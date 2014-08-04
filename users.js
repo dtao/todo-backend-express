@@ -47,6 +47,11 @@ module.exports = function createUsersBackend(connectionString) {
     },
 
     getToken: function(name, password, callback) {
+      if (!password) {
+        callback({ status: 401, message: 'Password is required' });
+        return;
+      }
+
       backend.query('SELECT * FROM users WHERE name = $1', [name], function(err, rows) {
         if (err || rows.length === 0) {
           callback(err || { status: 401, message: 'User does not exist' });
