@@ -1,0 +1,21 @@
+version: '3'
+services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=todos
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: todo-backend-express
+    ports:
+      - 5000:5000
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://postgres:password@db:5432
+    command: sh -c "node node_modules/db-migrate/bin/db-migrate up; node server.js"
+    restart: on-failure
